@@ -84,6 +84,9 @@ uint16_t l2cap_next_local_cid(void){
 
 uint16_t l2cap_create_signaling_internal(uint8_t * acl_buffer, hci_con_handle_t handle, uint16_t cid, L2CAP_SIGNALING_COMMANDS cmd, uint8_t identifier, va_list argptr){
     
+    const char *format = l2cap_signaling_commands_format[cmd-1];
+    uint16_t word;
+    uint8_t * ptr;
     int pb = hci_non_flushable_packet_boundary_flag_supported() ? 0x00 : 0x02;
 
     // 0 - Connection handle : PB=pb : BC=00 
@@ -101,9 +104,7 @@ uint16_t l2cap_create_signaling_internal(uint8_t * acl_buffer, hci_con_handle_t 
     if (cmd >= CONNECTION_PARAMETER_UPDATE_REQUEST){
         cmd -= 6;
     }
-    const char *format = l2cap_signaling_commands_format[cmd-1];
-    uint16_t word;
-    uint8_t * ptr;
+    
     while (*format) {
         switch(*format) {
             case '1': //  8 bit value
