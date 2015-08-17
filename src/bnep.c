@@ -80,20 +80,25 @@ inline static void bnep_channel_state_add(bnep_channel_t *channel, BNEP_CHANNEL_
 /* Emit service registered event */
 static void bnep_emit_service_registered(void *connection, uint8_t status, uint16_t service_uuid)
 {
-    log_info("BNEP_EVENT_SERVICE_REGISTERED status 0x%02x, uuid: 0x%04x", status, service_uuid);
     uint8_t event[5];
+    log_info("BNEP_EVENT_SERVICE_REGISTERED status 0x%02x, uuid: 0x%04x", status, service_uuid);
     event[0] = BNEP_EVENT_SERVICE_REGISTERED;
     event[1] = sizeof(event) - 2;
     event[2] = status;
     bt_store_16(event, 3, service_uuid);
     hci_dump_packet( HCI_EVENT_PACKET, 0, event, sizeof(event));
+    if(connection){
 	(*app_packet_handler)(connection, HCI_EVENT_PACKET, 0, (uint8_t *) event, sizeof(event));
+    }
+     log_info("Unable to call the AppPacketHandler: %p", connection));
+     return;
 }
 
 static void bnep_emit_open_channel_complete(bnep_channel_t *channel, uint8_t status) 
 {
-    log_info("BNEP_EVENT_OPEN_CHANNEL_COMPLETE status 0x%02x bd_addr: %s", status, bd_addr_to_str(channel->remote_addr));
     uint8_t event[3 + sizeof(bd_addr_t) + 3 * sizeof(uint16_t)];
+    if(channel){
+    log_info("BNEP_EVENT_OPEN_CHANNEL_COMPLETE status 0x%02x bd_addr: %s", status, bd_addr_to_str(channel->remote_addr));
     event[0] = BNEP_EVENT_OPEN_CHANNEL_COMPLETE;
     event[1] = sizeof(event) - 2;
     event[2] = status;
@@ -104,11 +109,15 @@ static void bnep_emit_open_channel_complete(bnep_channel_t *channel, uint8_t sta
     hci_dump_packet( HCI_EVENT_PACKET, 0, event, sizeof(event));
 	(*app_packet_handler)(channel->connection, HCI_EVENT_PACKET, channel->l2cap_cid, (uint8_t *) event, sizeof(event));
 }
+   log_info("Unable to call the AppPacketHandler: %s", channel->connection));
+  return;
+}
 
 static void bnep_emit_incoming_connection(bnep_channel_t *channel) 
 {
-    log_info("BNEP_EVENT_INCOMING_CONNECTION bd_addr: %s", bd_addr_to_str(channel->remote_addr));
     uint8_t event[2 + sizeof(bd_addr_t) + 3 * sizeof(uint16_t)];
+    if(channel){
+    log_info("BNEP_EVENT_INCOMING_CONNECTION bd_addr: %s", bd_addr_to_str(channel->remote_addr));
     event[0] = BNEP_EVENT_INCOMING_CONNECTION;
     event[1] = sizeof(event) - 2;
     bt_store_16(event, 2, channel->uuid_source);
@@ -118,11 +127,15 @@ static void bnep_emit_incoming_connection(bnep_channel_t *channel)
     hci_dump_packet( HCI_EVENT_PACKET, 0, event, sizeof(event));
 	(*app_packet_handler)(channel->connection, HCI_EVENT_PACKET, channel->l2cap_cid, (uint8_t *) event, sizeof(event));
 }
+ log_info("Unable to call the AppPacketHandler: %s", channel->connection));
+ return;
+}
 
 static void bnep_emit_channel_timeout(bnep_channel_t *channel) 
 {
-    log_info("BNEP_EVENT_CHANNEL_TIMEOUT bd_addr: %s", bd_addr_to_str(channel->remote_addr));
     uint8_t event[2 + sizeof(bd_addr_t) + 2 * sizeof(uint16_t) + sizeof(uint8_t)];
+    if(channel){
+    log_info("BNEP_EVENT_CHANNEL_TIMEOUT bd_addr: %s", bd_addr_to_str(channel->remote_addr));
     event[0] = BNEP_EVENT_CHANNEL_TIMEOUT;
     event[1] = sizeof(event) - 2;
     bt_store_16(event, 2, channel->uuid_source);
@@ -132,11 +145,14 @@ static void bnep_emit_channel_timeout(bnep_channel_t *channel)
     hci_dump_packet( HCI_EVENT_PACKET, 0, event, sizeof(event));
 	(*app_packet_handler)(channel->connection, HCI_EVENT_PACKET, channel->l2cap_cid, (uint8_t *) event, sizeof(event));
 }
-
+ log_info("Unable to call the AppPacketHandler: %s", channel->connection));
+return;
+}
 static void bnep_emit_channel_closed(bnep_channel_t *channel) 
 {
-    log_info("BNEP_EVENT_CHANNEL_CLOSED bd_addr: %s", bd_addr_to_str(channel->remote_addr));
     uint8_t event[2 + sizeof(bd_addr_t) + 2 * sizeof(uint16_t)];
+    if(channel){
+    log_info("BNEP_EVENT_CHANNEL_CLOSED bd_addr: %s", bd_addr_to_str(channel->remote_addr));
     event[0] = BNEP_EVENT_CHANNEL_CLOSED;
     event[1] = sizeof(event) - 2;
     bt_store_16(event, 2, channel->uuid_source);
@@ -145,6 +161,9 @@ static void bnep_emit_channel_closed(bnep_channel_t *channel)
     hci_dump_packet( HCI_EVENT_PACKET, 0, event, sizeof(event));
 	(*app_packet_handler)(channel->connection, HCI_EVENT_PACKET, channel->l2cap_cid, (uint8_t *) event, sizeof(event));
 }
+ log_info("Unable to call the AppPacketHandler: %s", channel->connection));
+ return;
+}
 
 static void bnep_emit_ready_to_send(bnep_channel_t *channel)
 {
@@ -152,8 +171,12 @@ static void bnep_emit_ready_to_send(bnep_channel_t *channel)
     event[0] = BNEP_EVENT_READY_TO_SEND;
     event[1] = sizeof(event) - 2;
     hci_dump_packet( HCI_EVENT_PACKET, 0, event, sizeof(event));
+    if(channel){
 	(*app_packet_handler)(channel->connection, HCI_EVENT_PACKET, channel->l2cap_cid, (uint8_t *) event, sizeof(event));
-}
+    }
+    log_info("Unable to call the AppPacketHandler: %s", channel->connection));
+    }
+
 
 /* Send BNEP connection request */
 static int bnep_send_command_not_understood(bnep_channel_t *channel, uint8_t control_type)
