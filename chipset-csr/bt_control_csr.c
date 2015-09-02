@@ -59,6 +59,27 @@ static const uint8_t init_script[] = {
     //  BCCMD WarmReset
     0x01, 0x00, 0xFC, 0x13, 0xc2, 0x02, 0x00, 0x09, 0x00, 0x4d, 0x0e, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
+static const bt_control_t bt_control_csr = {
+	bt_control_csr_on,                  // on
+	NULL,                               // off
+	NULL,                               // sleep
+	NULL,                               // wake
+	NULL,                               // valid
+	NULL,                               // name
+	NULL, /* csr_baudrate_cmd, */       // baudrate_cmd
+	bt_control_csr_next_cmd,            // next_cmd
+	NULL,                               // register_for_power_notifications
+    NULL,                               // hw_error
+    NULL,                               // set_bd_addr_cmd
+};
+
+static const hci_uart_config_t hci_uart_config_csr = {
+    NULL,
+    115200,
+    0,  // 1000000,
+    0
+};
+
 static const uint16_t init_script_size = sizeof(init_script);
 
 //
@@ -84,7 +105,11 @@ static int bt_control_csr_on(void *config){
 
 static void bt_control_csr_update_command(uint8_t *hci_cmd_buffer){
 }
-
+/*
+HCI Command Packet replaced with CSRInit Script
+Functionality :
+OutPut:hci_cmd_buffer[] = {0x00, 0xFC, 0x13, 0xc2, 0x02, 0x00, 0x09, 0x00, 0x1e, 0x00, 0x03, 0x70, 0x00, 0x00, 0xfe, 0x01};
+*/
 static int bt_control_csr_next_cmd(void *config, uint8_t *hci_cmd_buffer){
 
     if (init_script_offset >= init_script_size) {
@@ -115,30 +140,6 @@ static int bt_control_csr_next_cmd(void *config, uint8_t *hci_cmd_buffer){
     return 1; 
 }
 
-// MARK: const structs 
-
-static const bt_control_t bt_control_csr = {
-	bt_control_csr_on,                  // on
-	NULL,                               // off
-	NULL,                               // sleep
-	NULL,                               // wake
-	NULL,                               // valid
-	NULL,                               // name
-	NULL, /* csr_baudrate_cmd, */       // baudrate_cmd
-	bt_control_csr_next_cmd,            // next_cmd
-	NULL,                               // register_for_power_notifications
-    NULL,                               // hw_error
-    NULL,                               // set_bd_addr_cmd
-};
-
-static const hci_uart_config_t hci_uart_config_csr = {
-    NULL,
-    115200,
-    0,  // 1000000,
-    0
-};
-
-// MARK: public API
 void bt_control_csr_set_power(int16_t power_in_dB){
     init_power_in_dB = power_in_dB;
 }
